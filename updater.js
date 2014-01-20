@@ -77,7 +77,7 @@ function saveArrays(polyline_ida, polyline_volta ,   markers, number, number2){
     dictionary["polyline_ida"] = polyline_ida;
     dictionary["polyline_volta"] = polyline_volta;
     dictionary["pontos"] = markers;
-    var outputFilename = 'line_' + number2 + '.json';
+    var outputFilename = 'json/line_' + number2 + '.json';
     //Verify if the file exists, create a md5 and check it
     writeToFile(dictionary, outputFilename);
 }
