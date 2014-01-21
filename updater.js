@@ -7,6 +7,7 @@ var google = new google();
 var querystring = require('querystring');
 var document = new document();
 var fs = require('fs');
+var fse = require('fs-extra');
 var ida = new Array();
 var ida_used = 0;
 var pontos = new Array();
@@ -18,9 +19,9 @@ var md5 = require('MD5');
 var number = 3;
 
 var asd = " ";
-    //url =   argv.x;
-//number = argv.y;
 
+fse.removeSync('json/');
+fse.mkdirsSync('json/');
 
 get( ' http://www.emdec.com.br/ABusInf/consultarLinha.asp?consulta=1 ').asString(function(err, data){
     if(err)
