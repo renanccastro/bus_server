@@ -8,79 +8,149 @@ var querystring = require('querystring');
 var document = new document();
 var fs = require('fs');
 var fse = require('fs-extra');
-var ida = new Array();
+ida = new Array();
 var ida_used = 0;
-var pontos = new Array();
-var volta = new Array();
+pontos = new Array();
+volta = new Array();
 var nomesDasLinhas = new Array();
-var codigo = new Array();
-var md5 = require('MD5');
+ codigo = new Array();
+
+ready_lines = 0;
 
 var number = 3;
 
 var asd = " ";
 
-fse.removeSync('json/');
-fse.mkdirsSync('json/');
+// Cleaning up the directory
+fse.mkdirsSync('new_json/');
 
+//Get the url that says the code of all bus lines, and parse it
 get( ' http://www.emdec.com.br/ABusInf/consultarLinha.asp?consulta=1 ').asString(function(err, data){
     if(err)
         throw err;
+    //Load the data at the cheerio parser(html parser)
     $ = cheerio.load(data);
-    var b = $('.cinza a');
-    var a = $(" strong ");
-    nomesDasLinhas = a.text().split('\n');
+    var linhas = $('.cinza a');
+    var nomes = $(" strong ");
+    nomesDasLinhas = nomes.text().split('\n');
 
 
-    console.log(b.length);
-    for(var i = 0; i < b.length ; i++){
-            codigo.push(querystring.parse(url.parse(b[i].attribs["href"]).query)["CdPjOID"]);
+    for(var i = 0; i < linhas.length ; i++){
+            //Push all the number code to the codigo array.
+            this.codigo.push(querystring.parse(url.parse(linhas[i].attribs["href"]).query)["CdPjOID"]);
     }
-    //console.log(codigo.length);
-    for(var j = 0; j < codigo.length; j++){
+    console.log(this.codigo);
+
+    for(var j = 0; j < this.codigo.length; j++){
         var get = require('get');
-        number = codigo[j];
-        console.log(number);
-        asd = 'http://www.emdec.com.br/ABusInf/ABInfSvItiDLGoogleM.asp?CdPjOID=' + number + '&TpDiaID=0';
-        console.log(asd);
-        setTimeout(getString(asd, number, j+1), 30000);
+        codigo_linha = this.codigo[j];
+        linha_url = 'http://www.emdec.com.br/ABusInf/ABInfSvItiDLGoogleM.asp?CdPjOID=' + codigo_linha + '&TpDiaID=0';
+        console.log(linha_url);
+        setTimeout(getMapsJavascriptStringFromLine(linha_url, codigo_linha, j+1), 30000);
     }
 });
 
+function allIsReady(){
+    fs.readFile("database_options.json", 'utf8', function (err, data) {
+        if (err) {
+            console.log('Error: ' + err);
+            return;
+        }
+        data = JSON.parse(data);
+        //here is made a simple diff process to store the differences at the json version file.
+        var sys = require('sys')
+        var exec = require('child_process').exec;
+        var child;
 
-function getString(asd, number, number2 ){
+        child = exec("diff -q json/ new_json/ | grep differ | cut -f2 -d ' '", function (error, stdout, stderr) {
+            if(stdout == ""){
+                if(data["file_count"] != this.codigo.length){
+                    console.log('you have only file count diff');
+                    var array = new Array();
+                    for(i = data["file_count"]; i<= this.codigo.length; i++){
+                        array.push("json/line_"+i.toString()+".json");
+                    }
+                    var dictionary = [{"diff_files": array,"new_file_count":this.codigo.length}];
 
-        get(asd).asString(function(err, data) {
-            if(err) throw err;
-            $ = cheerio.load(data);
-            treatArray($('script').contents().text(), number, number2);
+                    writeToFile(dictionary, "json/update_"+data["version"]+".json" );
+                    data["version"] = data["version"]+1;
+                    data["file_count"] = this.codigo.length;
+                    writeToFile(data, "database_options.json");
+
+                }
+                else
+                    console.log("you have 0 deviations, no patch is needed");
+            }
+            else{
+                console.log('you have deviations!');
+                console.log(stdout);
+                var array = stdout.split('\n');
+                array.pop();
+                if(data["file_count"] != this.codigo.length){
+                    for(i = data["file_count"]; i<= this.codigo.length; i++){
+                        array.push("json/line_"+i.toString()+".json");
+                    }
+                }
+                var dictionary = [{"diff_files":array,"new_file_count":this.codigo.length}];
+                writeToFile(dictionary, "update_"+data["version"]+".json" );
+                data["version"] = data["version"]+1;
+                data["file_count"] = this.codigo.length;
+                writeToFile(data, "database_options.json");
+            }
+            if (error != null) {
+                console.log('exec error: ' + error);
+            }
+            fse.removeSync("json/");
+            fs.renameSync("new_json/","json/");
 
         });
+
+
+
+    });
 }
 
+function LineIsReady(){
+    this.ready_lines++;
+    if(this.ready_lines == this.codigo.length){
+        allIsReady();
+    }
+}
 
+function getMapsJavascriptStringFromLine(linha_url, codigo_linha, iterador ){
 
+    get(linha_url).asString(function(err, data) {
+        if(err){
+            console.log("linha: "+iterador+" codigo_linha: "+codigo_linha+"\n linha_url:"+linha_url);
+            throw err;
+        }
+        $ = cheerio.load(data);
+        parseJavascriptAndSave($('script').contents().text(), codigo_linha, iterador);
+    });
+}
 
-
-function treatArray(script, number, number2){
-    //console.log(script);
-
+function parseJavascriptAndSave(script, codigo_linha, iterador){
     var window = new Object();
     eval(script);
     initialize();
-    saveArrays(ida, volta, pontos, number, number2);
+    //after the initialize routine, the ida, volta and pontos arrays are populated with data.
+    saveArrays(this.ida, this.volta, this.pontos, codigo_linha, iterador);
+    this.ida = [];
+    this.volta = [];
+    this.pontos = [];
 }
 
-function saveArrays(polyline_ida, polyline_volta ,   markers, number, number2){
-    var name = nomesDasLinhas[number2];
+function saveArrays(polyline_ida, polyline_volta ,   markers, codigo_linha, iterador){
+    var name = nomesDasLinhas[iterador];
     var dictionary = {};
     dictionary["name"] = name;
+    dictionary["web_code"] = codigo_linha;
     dictionary["polyline_ida"] = polyline_ida;
     dictionary["polyline_volta"] = polyline_volta;
     dictionary["pontos"] = markers;
-    var outputFilename = 'json/line_' + number2 + '.json';
-    //Verify if the file exists, create a md5 and check it
+    var outputFilename = 'new_json/line_' + iterador + '.json';
     writeToFile(dictionary, outputFilename);
+    LineIsReady();
 }
 
 function writeToFile(dictionary, outputFilename){
