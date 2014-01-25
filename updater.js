@@ -70,7 +70,7 @@ function allIsReady(){
                     for(i = data["file_count"]; i<= this.codigo.length; i++){
                         array.push("json/line_"+i.toString()+".json");
                     }
-                    var dictionary = [{"diff_files": array,"new_file_count":this.codigo.length}];
+                    var dictionary = {"diff_files": array,"new_file_count":this.codigo.length};
 
                     writeToFile(dictionary, "json/update_"+data["version"]+".json" );
                     data["version"] = data["version"]+1;
@@ -91,7 +91,7 @@ function allIsReady(){
                         array.push("json/line_"+i.toString()+".json");
                     }
                 }
-                var dictionary = [{"diff_files":array,"new_file_count":this.codigo.length}];
+                var dictionary = {"diff_files":array,"new_file_count":this.codigo.length};
                 writeToFile(dictionary, "update_"+data["version"]+".json" );
                 data["version"] = data["version"]+1;
                 data["file_count"] = this.codigo.length;

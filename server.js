@@ -10,6 +10,18 @@ new cronJob('0 0-23/2 * * *', function(){
     console.log('Updating database...');
 }, null, true);
 
+Array.prototype.unique = function() {
+    var a = this.concat();
+    for(var i=0; i<a.length; ++i) {
+        for(var j=i+1; j<a.length; ++j) {
+            if(a[i] === a[j])
+                a.splice(j--, 1);
+        }
+    }
+
+    return a;
+};
+
 // Configure our HTTP server to respond with Hello World to all requests.
 var server = http.createServer(function (request, response) {
     var query = url.parse(request.url, true)
@@ -22,6 +34,47 @@ var server = http.createServer(function (request, response) {
     if(query.pathname == "/count"){
         fs.readdir("json/", function(err, files){
             response.end(files.length.toString());
+        });
+    }
+    //if it was requested an update
+    else if(query.pathname == "/update"){
+        var user_version = queryData.version;
+        var database_options = JSON.parse(fs.readFileSync("database_options.json"));
+        //if it is up to date
+        if(database_options["version"].toString() == user_version){
+            response.end("Up to date.");
+        }
+        //if by chance, the version of the local is greater than the server one, that's bad
+        else if(database_options["version"] < parseInt(user_version)){
+            response.end("That's some bad hat harry.");
+        }
+        else{
+            var files_to_update = new Array();
+            for(i=parseInt(user_version); i < database_options["version"]; i++){
+                update = JSON.parse(fs.readFileSync("update_"+i+".json"));
+                files_to_update = files_to_update.concat(update["diff_files"]).unique();
+                console.log(files_to_update);
+            }
+            fs.readFile("update_"+user_version+".json", function(err,data){
+                if(err)
+                    response.end("Error getting update file, try again later");
+                else{
+                    last_update = JSON.parse(data);
+                    var dic = [{"diff_files":files_to_update, "new_file_count":last_update["new_file_count"]}];
+                    response.end(JSON.stringify(dic, null, 4));
+                }
+            });
+        }
+    }
+    //get json with complete pathname
+    else if(query.pathname == "/get_json"){
+        fs.readFile(queryData.file, function(err, fd){
+            if(!err){
+                response.end(fd.toString());
+            }
+            else{
+                response.end("Error oppening requested json file");
+            }
         });
     }
     else{
