@@ -1,4 +1,3 @@
-
 var http = require('http');
 var url = require('url');
 var fs = require('fs');
@@ -60,7 +59,7 @@ var server = http.createServer(function (request, response) {
                     response.end("Error getting update file, try again later");
                 else{
                     last_update = JSON.parse(data);
-                    var dic = [{"diff_files":files_to_update, "new_file_count":last_update["new_file_count"]}];
+                    var dic = {"diff_files":files_to_update, "new_file_count":last_update["new_file_count"], "newest_version":database_options["version"]};
                     response.end(JSON.stringify(dic, null, 4));
                 }
             });
