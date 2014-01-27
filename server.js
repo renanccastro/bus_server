@@ -40,7 +40,16 @@ var server = http.createServer(function (request, response) {
         var user_version = queryData.version;
         var database_options = JSON.parse(fs.readFileSync("database_options.json"));
         //if it is up to date
-        if(database_options["version"].toString() == user_version){
+        if(user_version == "0"){
+            var files_to_update = new Array();
+            for(i=1; i <= database_options["file_count"]; i++){
+                files_to_update.push("json/line_"+i.toString()+".json");
+            }
+
+            var dic = {"diff_files":files_to_update, "new_file_count":database_options["file_count"], "newest_version":database_options["version"]};
+            response.end(JSON.stringify(dic, null, 4));
+        }
+        else if(database_options["version"].toString() == user_version){
             response.end("Up to date.");
         }
         //if by chance, the version of the local is greater than the server one, that's bad
