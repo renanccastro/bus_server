@@ -14,7 +14,8 @@ pontos = new Array();
 volta = new Array();
 var nomesDasLinhas = new Array();
  codigo = new Array();
-
+ var iconv = require('iconv');
+var ic = new iconv.Iconv('iso-8859-1', 'utf8');
 ready_lines = 0;
 
 var number = 3;
@@ -25,9 +26,11 @@ var asd = " ";
 fse.mkdirsSync('new_json/');
 
 //Get the url that says the code of all bus lines, and parse it
-get( ' http://www.emdec.com.br/ABusInf/consultarLinha.asp?consulta=1 ').asString(function(err, data){
+get( { uri:' http://www.emdec.com.br/ABusInf/consultarLinha.asp?consulta=1 ', encoding:"binary"}).asString(function(err, body){
     if(err)
         throw err;
+    var decoder = new (require('string_decoder').StringDecoder)('utf-8');
+    var data = decoder.write(body);
     //Load the data at the cheerio parser(html parser)
     $ = cheerio.load(data);
     var linhas = $('.cinza a');
