@@ -14,8 +14,6 @@ pontos = new Array();
 volta = new Array();
 var nomesDasLinhas = new Array();
  codigo = new Array();
- var iconv = require('iconv');
-var ic = new iconv.Iconv('iso-8859-1', 'utf8');
 ready_lines = 0;
 
 var number = 3;
