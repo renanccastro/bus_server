@@ -37,10 +37,8 @@ var server = http.createServer(function (request, response) {
         });
     }
     else if(query.pathname == "/updatenow"){
-        response.write("Started updating server, wait a few minutes");
-        updater.updateServer(function(outdated){
-            response.end( !outdated ? "No update was needed" : "Your server has been updated to a new version");
-        });
+        response.write("Started updating server.");
+        updater.updateServer(response);
         console.log('Updating database...');
     }
     //if it was requested an update
