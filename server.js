@@ -2,11 +2,10 @@ var http = require('http');
 var url = require('url');
 var fs = require('fs');
 var crypto = require('crypto');
-var updater = require("./updater.js");
 
 var cronJob = require('cron').CronJob;
 new cronJob('0 0-23/2 * * *', function(){
-    updater.updateServer(function(a){});
+    require("./updater.js");
     console.log('Updating database...');
 }, null, true);
 
@@ -35,12 +34,6 @@ var server = http.createServer(function (request, response) {
         fs.readdir("json/", function(err, files){
             response.end(files.length.toString());
         });
-    }
-    else if(query.pathname == "/updatenow"){
-        updater.updateServer(function(outdated){
-            response.end( !outdated ? "No update was needed" : "Your server has been updated to a new version");
-        });
-        console.log('Updating database...');
     }
     //if it was requested an update
     else if(query.pathname == "/update"){
