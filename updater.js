@@ -104,7 +104,7 @@ exports.updateServer = function ( response ){
                 if (error != null) {
                     console.log('exec error: ' + error);
                 }
-                response.end("Updated was needed, you now have the newest database version on the server");
+                console.log("Updated was needed, you now have the newest database version on the server");
                 fse.removeSync("json/");
                 fs.renameSync("new_json/","json/");
 
