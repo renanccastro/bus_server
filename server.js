@@ -37,7 +37,7 @@ var server = http.createServer(function (request, response) {
         });
     }
     else if(query.pathname == "/updatenow"){
-        response.write("Started updating server.</br>");
+        response.write("Started updating server.");
         updater.updateServer(response);
         console.log('Updating database...');
     }
