@@ -7,7 +7,7 @@ var querystring = require('querystring');
 var fs = require('fs');
 var fse = require('fs-extra');
 
-exports.updateServer = function ( callback ){
+exports.updateServer = function ( response ){
     var google = new google();
     var document = new document();
     ida = new Array();
@@ -83,7 +83,7 @@ exports.updateServer = function ( callback ){
                     }
                     else
                         console.log("you have 0 deviations, no patch is needed");
-                        callback(0);
+                        response.end("No update was needed");
                 }
                 else{
                     console.log('you have deviations!');
@@ -104,7 +104,7 @@ exports.updateServer = function ( callback ){
                 if (error != null) {
                     console.log('exec error: ' + error);
                 }
-                callback(1);
+                console.log("Updated was needed, you now have the newest database version on the server");
                 fse.removeSync("json/");
                 fs.renameSync("new_json/","json/");
 
@@ -117,6 +117,7 @@ exports.updateServer = function ( callback ){
 
     function LineIsReady(){
         this.ready_lines++;
+        response.write(this.ready_lines.toString() + " bus lines ready");
         if(this.ready_lines == this.codigo.length){
             allIsReady();
         }
