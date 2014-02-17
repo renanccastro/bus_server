@@ -117,7 +117,7 @@ exports.updateServer = function ( response ){
 
     function LineIsReady(){
         this.ready_lines++;
-        response.write(this.ready_lines.toString() + " bus lines ready");
+        response.write(this.ready_lines.toString() + " bus lines ready</br>");
         if(this.ready_lines == this.codigo.length){
             allIsReady();
         }
