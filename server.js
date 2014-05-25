@@ -85,6 +85,16 @@ var server = http.createServer(function (request, response) {
             }
         });
     }
+    else if(query.pathname == "/get_time_json"){
+        fs.readFile("times/"+queryData.lineNumber+"_horarios.json", function(err, fd){
+            if(!err){
+                response.end(fd.toString());
+            }
+            else{
+                response.end("Error oppening requested json file");
+            }
+        });
+    }
     else{
         if (json_file && json_hash) {
             fs.readFile(json_file, function(err, fd){

@@ -23,6 +23,8 @@ var asd = " ";
 // Cleaning up the directory
 fse.mkdirsSync('new_json/');
 
+
+
 //Get the url that says the code of all bus lines, and parse it
 get( { uri:' http://www.emdec.com.br/ABusInf/consultarLinha.asp?consulta=1 ', encoding:"binary"}).asString(function(err, body){
     if(err)
@@ -48,8 +50,10 @@ get( { uri:' http://www.emdec.com.br/ABusInf/consultarLinha.asp?consulta=1 ', en
         linha_url = 'http://www.emdec.com.br/ABusInf/ABInfSvItiDLGoogleM.asp?CdPjOID=' + codigo_linha + '&TpDiaID=0';
         console.log(linha_url);
         setTimeout(getMapsJavascriptStringFromLine(linha_url, codigo_linha, j+1), 30000);
+        parseTimeTable(linha_url, codigo_linha);
     }
 });
+
 
 function allIsReady(){
     fs.readFile("database_options.json", 'utf8', function (err, data) {
